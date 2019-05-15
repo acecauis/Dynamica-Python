@@ -1,7 +1,8 @@
 from src import config
-from src import animals
-from src import plants
-from src import terrain
+from src.terrain.terrain_types import lake, plains, desert
+from src.animals.species import lion, zebra
+from src.plants.species import grass
+from src.objects import carcass
 import random
 import sys
 import numpy as np
@@ -80,22 +81,22 @@ class World:
     ############################################################################################################
     def choose_tile_type(self, i, j):
         if (i == 0) or (i == self.num_rows - 1) or (j == 0) or (j == self.num_columns - 1):
-            new_tile = terrain.Lake(j, i)
+            new_tile = lake.Lake(j, i)
             new_tile.change_appearance(self.appearance_dict['Lake'])
             self.water_size += 1
         else:
             lake_value = random.uniform(0, 1)
             if lake_value < config.Terrain.lake_prob:
-                new_tile = terrain.Lake(j, i)
+                new_tile = lake.Lake(j, i)
                 new_tile.change_appearance(self.appearance_dict['Lake'])
                 self.water_size += 1
             else:
                 plains_value = random.uniform(0, 1)
                 if plains_value < config.Terrain.plains_prob:
-                    new_tile = terrain.Plains(j, i)
+                    new_tile = plains.Plains(j, i)
                     new_tile.change_appearance(self.appearance_dict['Plains'])
                 else:
-                    new_tile = terrain.Desert(j, i)
+                    new_tile = desert.Desert(j, i)
                     new_tile.change_appearance(self.appearance_dict['Desert'])
 
         return new_tile
@@ -106,7 +107,7 @@ class World:
         for i in range(self.num_rows):
             for j in range(self.num_columns):
                 if self.map[(j, i)].terrain_type == 'Plains':
-                    new_grass = plants.Grass(self)
+                    new_grass = grass.Grass(self)
                     new_grass.change_appearance(self.appearance_dict['Grass'])
                     self.map[(j, i)].plant_list.append(new_grass)
                     self.plant_list.append(new_grass)
@@ -120,10 +121,10 @@ class World:
     def generate_animals(self):
 
         for i in range(config.Lion.start_number):
-            self.animal_list.append(animals.Lion(self, None, None))
+            self.animal_list.append(lion.Lion(self, None, None))
 
         for i in range(config.Zebra.start_number):
-            self.animal_list.append(animals.Zebra(self, None, None))
+            self.animal_list.append(zebra.Zebra(self, None, None))
 
         if len(self.animal_list) > self.land_size:
             print("ERROR: Number of animals is > the number of land tiles")
@@ -177,11 +178,13 @@ class World:
 
         for species in self.animal_species_counts_dict:
             self.turn_summary_dict['Animal'][species] = [self.animal_species_counts_dict[species], 0, 0, 0]
-            for animal in self.animal_list:
-                self.turn_summary_dict['Animal'][animal.species][1] += animal.drive_system.drive_value_array[0]
-                self.turn_summary_dict['Animal'][animal.species][2] += animal.drive_system.drive_value_array[1]
-                self.turn_summary_dict['Animal'][animal.species][3] += animal.drive_system.drive_value_array[2]
 
+        for animal in self.animal_list:
+            self.turn_summary_dict['Animal'][animal.species][1] += animal.drive_system.drive_value_array[0]
+            self.turn_summary_dict['Animal'][animal.species][2] += animal.drive_system.drive_value_array[1]
+            self.turn_summary_dict['Animal'][animal.species][3] += animal.drive_system.drive_value_array[2]
+
+        for species in self.animal_species_counts_dict:
             if self.turn_summary_dict['Animal'][species][0]:
                 self.turn_summary_dict['Animal'][species][1] /= self.turn_summary_dict['Animal'][species][0]
                 self.turn_summary_dict['Animal'][species][2] /= self.turn_summary_dict['Animal'][species][0]
@@ -247,14 +250,15 @@ class World:
 
     ############################################################################################################
     def next_turn(self):
-
-        if len(self.animal_list):
+        if len(self.object_list):
             for world_object in self.object_list:
                 world_object.next_turn()
 
+        if len(self.plant_list):
             for plant in self.plant_list:
                 plant.next_turn()
 
+        if len(self.animal_list):
             for animal in self.animal_list:
                 # normal turn actions
                 animal.take_turn()
@@ -264,9 +268,9 @@ class World:
                     if animal.pregnant == 1:
 
                         if animal.species == 'Zebra':
-                            animal.fetus = animals.Zebra(self, animal.genome, animal.baby_daddy_genome)
+                            animal.fetus = zebra.Zebra(self, animal.genome, animal.baby_daddy_genome)
                         elif animal.species == 'Lion':
-                            animal.fetus = animals.Lion(self, animal.genome, animal.baby_daddy_genome)
+                            animal.fetus = lion.Lion(self, animal.genome, animal.baby_daddy_genome)
 
                     if animal.pregnant >= config.Animal.gestation_rate:
 
@@ -288,6 +292,7 @@ class World:
 
                 # deal with animal whose health is 0
                 if animal.drive_system.drive_value_array[animal.drive_system.drive_index_dict['Health']] <= 0:
+                    self.create_carcass(animal)
                     self.kill_animal(animal)
 
         self.calc_turn_summary()
@@ -307,9 +312,9 @@ class World:
         output_header += "{:<9s} {:<7s} {:<5s}".format("Sex", "Age", "Size")
         output_header += " {:>3s},{:<3s} {:>4s} | ".format("X", "Y", "Dir")
         output_header += " {:<7s}  {:<7s}  {:<7s} | ".format("Health", "Energy", "Arousal")
-        output_header += "{:<6s} {:<6s} {:<6s} {:<6s} {:<6s} {:<6s}| ".format("Rest", "Attack", "Eat", "Procreate", "Turn", "Move")
+        output_header += " {:<6s}  {:<6s} {:<6s} {:<6s} {:<6s} {:<6s}".format("Rest", "Attack", "Eat", "Proc", "Turn", "Move")
         output_header += "{:>9s}".format("Choice")
-        output_header += " | {:>6s} {:>6s} {:>6s} {:>6s} {:>9s}".format("SpCost", "DpCost", "ApCost", "PpCost", "DrCost")
+        output_header += "| {:>6s} {:>6s} {:>6s} {:>6s} {:>9s}".format("SpCost", "DpCost", "ApCost", "PpCost", "DrCost")
         if len(self.animal_list) > 1 or self.current_turn % 10 == 0:
             print(output_header)
 
@@ -334,7 +339,7 @@ class World:
 
                 for i in range(animal.action_system.num_actions):
                     try:
-                        output_string += " {:<3.2f} ".format(animal.action_system.legal_action_prob_distribution[i])
+                        output_string += "  {:<3.2f} ".format(animal.action_system.legal_action_prob_distribution[i])
                     except ValueError as argument:
                         print('\n\n')
                         print(animal)
@@ -377,6 +382,20 @@ class World:
         self.animal_list.remove(animal)
         self.animal_species_counts_dict[animal.species] -= 1
         animal.position = None
+
+    ############################################################################################################
+    def create_carcass(self, animal):
+        object_type = "Meat"
+        animal_carcass = carcass.Carcass(object_type, animal.dead_graphic_object,
+                                              animal.appearance, animal.current_size, self)
+        animal_carcass.position = animal.position
+
+        self.object_list.append(animal_carcass)
+        self.map[tuple(animal_carcass.position)].object_list.append(animal_carcass)
+        if object_type in self.object_counts_dict:
+            self.object_counts_dict[object_type] += 1
+        else:
+            self.object_counts_dict[object_type] = 1
 
     ############################################################################################################
     def legal_offspring_location(self, animal, location):

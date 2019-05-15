@@ -1,16 +1,16 @@
 ############################################################################################################
 class GlobalOptions:
-    verbose = False
+    debug = False
     random_seed = None
-    summary_freq = 1
+    summary_freq = 0
     window_height = 800
     window_width = 1600
 
 
 ############################################################################################################
 class World:
-    num_rows = 24  # rows x grid size-1 must be < window_height
-    num_columns = 34  # columns x grid size-1 must be < window_width
+    num_rows = 30  # rows x grid size-1 must be < window_height
+    num_columns = 30  # columns x grid size-1 must be < window_width
     grid_size = 32  # the width and height of each grid square (in pixels)
     appearance_size = 20  # this is the size of the appearance vector generated for each thing
 
@@ -45,11 +45,11 @@ class Animal:
     gestation_rate = 50
     childhood_length = 100
 
-    attack_strength = 10
+    attack_strength = 5
     teeth_attack_strength = 20
 
-    metabolism = 4.0
-    pregnant_metabolism = 8.0
+    metabolism = 2.0
+    pregnant_metabolism_multiplier = 2
 
     starvation_rate = 1.0
 
@@ -59,6 +59,8 @@ class Animal:
                             }
 
     drive_init_dict = {'Health': 1.0, 'Energy': 1.0, 'Arousal': 0.0}
+
+    action_noise = 0.01
 
     action_drive_change_dict = {'Rest':      {'Health': 1.0, 'Energy': -0.01, 'Arousal': 0.0},
                                 'Attack':    {'Health': 0.0, 'Energy': -0.10, 'Arousal': 0.0},
@@ -98,11 +100,32 @@ class Animal:
 
 ############################################################################################################
 class Lion:
-    start_number = 0
-    diet_dict = {'Meat': True, 'Plants': False}
+    start_number = 10
+    diet_dict = {'Meat': 2,
+                 'Plants': 0}
+    species_metabolism_multiplier = 1
 
 
 ############################################################################################################
 class Zebra:
-    start_number = 10
-    diet_dict = {'Meat': False, 'Plants': True}
+    start_number = 20
+    diet_dict = {'Meat': 0,
+                 'Plants': 1}
+    species_metabolism_multiplier = 1
+
+
+############################################################################################################
+class Grass:
+    grow_rate = 5
+
+
+############################################################################################################
+class Carcass:
+    decay_rate = 1
+
+
+############################################################################################################
+class Debug:
+    drive_system = False
+    action_system = False
+    nervous_system = False

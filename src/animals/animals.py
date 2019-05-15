@@ -1,25 +1,18 @@
 import random
 import numpy as np
 from src import config
-from src import genome
-from src import phenotype
-from src import drive_system
-from src import action_system
-from src import nervous_system
+from src.animals import phenotype, drive_system, nervous_system, action_system, genome
 
 
-############################################################################################################
-############################################################################################################
 class Animal:
-
     ############################################################################################################
     def __init__(self, the_world, mother_genome, father_genome):
-
         ############################################################################################################
         self.the_world = the_world  # a reference to the world data structure
         self.kingdom = "Animal"  # this animal's kingdom type (ie plant or animal)
         self.species = None  # this animal's species type
         self.graphic_object = None  # this animal's graphic object, currently a python turtle object
+        self.dead_graphic_object = None
         self.id_number = the_world.entity_counter  # a unique id number
         self.the_world.entity_counter += 1
 
@@ -35,7 +28,8 @@ class Animal:
 
         ############################################################################################################
         self.attack_strength = config.Animal.attack_strength  # the force modifier this animal gets when attacking\
-        self.metabolism = config.Animal.metabolism
+        self.species_metabolism_multiplier = 1
+        self.metabolism = config.Animal.metabolism * self.species_metabolism_multiplier
         self.allowed_terrain_dict = config.Animal.allowed_terrain_dict
         self.action_drive_change_dict = config.Animal.action_drive_change_dict
         self.diet_dict = None
@@ -82,7 +76,8 @@ class Animal:
     def get_pregnant(self, father_genome):
         self.pregnant = 1
         self.baby_daddy_genome = father_genome
-        self.metabolism = config.Animal.pregnant_metabolism
+        self.metabolism = config.Animal.metabolism * self.species_metabolism_multiplier * \
+                          config.Animal.pregnant_metabolism_multiplier
 
     ############################################################################################################
     def bear_child(self):
@@ -91,7 +86,7 @@ class Animal:
         self.fetus.age = 0
         self.pregnant = 0
         self.fetus = None
-        self.metabolism = config.Animal.metabolism
+        self.metabolism = config.Animal.metabolism * self.species_metabolism_multiplier
 
     ############################################################################################################
     def update_appearance(self, appearance=None):
@@ -112,32 +107,3 @@ class Animal:
 
         self.appearance = self.phenotype.trait_value_dict['Appearance']
         self.appearance[0] = self.current_size / 5
-
-
-############################################################################################################
-############################################################################################################
-class Mammal(Animal):
-    def __init__(self, animal_id, mother_genome, father_genome):
-        Animal.__init__(self, animal_id, mother_genome, father_genome)
-
-
-############################################################################################################
-############################################################################################################
-class Lion(Mammal):
-    def __init__(self, animal_id, mother_genome, father_genome):
-        Mammal.__init__(self, animal_id, mother_genome, father_genome)
-        self.species = 'Lion'
-        self.image_dict = {0: 'assets/images/Lion0.gif', 90: 'assets/images/Lion90.gif',
-                           180: 'assets/images/Lion180.gif', 270: 'assets/images/Lion270.gif'}
-        self.diet_dict = config.Lion.diet_dict
-
-
-############################################################################################################
-############################################################################################################
-class Zebra(Mammal):
-    def __init__(self, animal_id, mother_genome, father_genome):
-        Mammal.__init__(self, animal_id, mother_genome, father_genome)
-        self.species = 'Zebra'
-        self.image_dict = {0: 'assets/images/Zebra0.gif', 90: 'assets/images/Zebra90.gif',
-                           180: 'assets/images/Zebra180.gif', 270: 'assets/images/Zebra270.gif'}
-        self.diet_dict = config.Zebra.diet_dict
