@@ -4,12 +4,12 @@ from src.animals.species import lion, zebra
 from src.plants.species import grass
 from src.objects import carcass
 import random
+import time
 import sys
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-
-############################################################################################################
-############################################################################################################
 class World:
     def __init__(self):
 
@@ -33,6 +33,7 @@ class World:
 
         self.turn_summary_dict = None
         self.initial_animal_summary_dict = None
+        self.species_summary_history_list = []
 
         self.appearance_dict = None
         random_seed = config.GlobalOptions.random_seed
@@ -51,6 +52,10 @@ class World:
         self.generate_objects()
         self.calc_turn_summary()
         self.calc_initial_animal_summaries()
+        self.calc_all_species_summaries()
+        self.plot_species_summary()
+
+        self.world_timers_array = np.zeros([12])
 
         if config.Animal.output_data:
             self.animal_summary_filename = "output/" + str(self.random_seed) + "_animals_n" + str(len(self.animal_list)) + ".txt"
@@ -198,10 +203,22 @@ class World:
             self.initial_animal_summary_dict[species] = animal_summary_dict
 
     ############################################################################################################
+    def calc_all_species_summaries(self):
+        all_species_summaries_dict = {}
+
+        for species in self.animal_species_counts_dict:
+            species_summary_dict = self.calc_species_summary(species)
+            all_species_summaries_dict[species] = species_summary_dict
+        self.species_summary_history_list.append(all_species_summaries_dict)
+
+    ############################################################################################################
+    # ToDo: 05/14/19 - Use calc_species_summary data for time-series data visualization
+
     def calc_species_summary(self, species):
 
         animal_summary_dict = {'N': self.turn_summary_dict['Animal'][species][0],
                                'Drive Values': self.turn_summary_dict['Animal'][species][1:]}
+
         sex_sum = 0.0
         age_sum = 0.0
         size_sum = 0.0
@@ -246,17 +263,32 @@ class World:
         animal_summary_dict['Drive Reinforcement Rates'] = drive_reinforcement_sums / n
         animal_summary_dict['Action Outputs'] = action_output_sums / n
 
-        return animal_summary_dict
+        return animal_summary_dict#, plt.figure(1, figsize=(6, 6)),                         #   plt.plot(pd.DataFrame.from_dict(animal_summary_dict))
+
+    ############################################################################################################
+    # Summon matplotlib chart on start of GUI
+    # def show_graph(self, data):
+    #     import matplotlib.pyplot as plt
+    #
+    #     # Show empty graph
+    #     fig = plt.figure(1, figsize=(6, 6))
+    #     fig.plot(data)
+
 
     ############################################################################################################
     def next_turn(self):
+
+        start_time = time.time()
         if len(self.object_list):
             for world_object in self.object_list:
                 world_object.next_turn()
+        self.world_timers_array[0] += time.time() - start_time
 
+        start_time = time.time()
         if len(self.plant_list):
             for plant in self.plant_list:
                 plant.next_turn()
+        self.world_timers_array[1] += time.time() - start_time
 
         if len(self.animal_list):
             for animal in self.animal_list:
@@ -264,6 +296,7 @@ class World:
                 animal.take_turn()
 
                 # deal with pregnancy related matters
+                start_time = time.time()
                 if animal.pregnant:
                     if animal.pregnant == 1:
 
@@ -289,13 +322,20 @@ class World:
                                 break
                     else:
                         animal.pregnant += 1
+                self.world_timers_array[9] += time.time() - start_time
 
                 # deal with animal whose health is 0
+                start_time = time.time()
                 if animal.drive_system.drive_value_array[animal.drive_system.drive_index_dict['Health']] <= 0:
                     self.create_carcass(animal)
                     self.kill_animal(animal)
+                self.world_timers_array[10] += time.time() - start_time
 
+        start_time = time.time()
         self.calc_turn_summary()
+        self.calc_all_species_summaries()
+        self.plot_species_summary()
+        self.world_timers_array[11] += time.time() - start_time
 
         if config.GlobalOptions.summary_freq:
             if self.current_turn % config.GlobalOptions.summary_freq == 0:
@@ -304,6 +344,23 @@ class World:
                     self.write_summary()
 
         self.current_turn += 1
+
+    ############################################################################################################
+    def plot_species_summary(self):
+        # Take the output from this function and use it to create three subplots for each animal's drive values
+        # of the drive values that are only displayed upon clicking the animal's image on the main GUI display
+
+        #self.species_summary_history_list
+
+        print(self.species_summary_history_list)
+
+    '''
+        create a window
+        for each type fo info we care about
+        create a plot and put it in the window
+
+    '''
+
 
     ############################################################################################################
     def print_summary(self):

@@ -2,7 +2,7 @@
 class GlobalOptions:
     debug = False
     random_seed = None
-    summary_freq = 0
+    summary_freq = 1
     window_height = 800
     window_width = 1600
 
