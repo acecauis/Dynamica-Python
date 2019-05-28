@@ -205,12 +205,13 @@ class World:
 
     ############################################################################################################
     def calc_all_species_summaries(self):
-        all_species_summaries_dict = {}
+        self.all_species_summaries_dict = {}
 
         for species in self.animal_species_counts_dict:
             species_summary_dict = self.calc_species_summary(species)
-            all_species_summaries_dict[species] = species_summary_dict
-        self.species_summary_history_list.append(all_species_summaries_dict)
+            self.all_species_summaries_dict[species] = species_summary_dict
+        ## Excessive and do not need  the line below
+        # self.species_summary_history_list.append(all_species_summaries_dict)
 
     ############################################################################################################
     # ToDo: 05/14/19 - Use calc_species_summary data for time-series data visualization
@@ -354,13 +355,31 @@ class World:
             create a plot and put it in the window
 
         '''
-            # Take the output from this function and use it to create three subplots for each animal's drive values
+        # Take the output from this function and use it to create three subplots for each animal's drive values
         # of the drive values that are only displayed upon clicking the animal's image on the main GUI display
 
-        df_dict = pd.DataFrame(self.species_summary_history_list)
+        dict_of_species_data = self.all_species_summaries_dict
+        list_of_species_data = []
 
-        self.zebra_drive_values = pd.DataFrame(df_dict['Zebra'][0]['Drive Values'])
-        self.lion_drive_values = pd.DataFrame(df_dict['Lion'][0]['Drive Values'])
+        for key, value in dict_of_species_data.items():
+            temp = [key, value]
+            list_of_species_data.append(temp)
+
+
+        zebra_data = list_of_species_data[0][1]
+        lion_data = list_of_species_data[1][1]
+
+        zebra_tuple_data = []
+        for key, value in zebra_data.items():
+            temp = [key, value]
+            zebra_tuple_data.append(temp)
+        print(zebra_tuple_data)
+
+        lion_tuple_data = []
+        for key, value in lion_data.items():
+            temp = [key, value]
+            lion_tuple_data.append(temp)
+        print(lion_tuple_data)
 
 
 

@@ -176,9 +176,9 @@ class SummaryFrame(tk.Frame):
         # ToDo: Add Zebra plot visualization on_double_click
         self.zebra_image_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
         self.zebra_image_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
-        species_sum = World.plot_species_summary
-        toPlot = species_sum.zebra_drive_values
-        plt.plot(toPlot)
+        # species_sum = World.plot_species_summary
+        # toPlot = species_sum.zebra_drive_values
+        # plt.plot(toPlot)
 
         # ToDo: Add Zebra plot visualization on_double_click
         self.zebra_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
