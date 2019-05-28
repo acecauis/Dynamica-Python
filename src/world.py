@@ -3,6 +3,7 @@ from src.terrain.terrain_types import lake, plains, desert
 from src.animals.species import lion, zebra
 from src.plants.species import grass
 from src.objects import carcass
+from src.display import summary_frame
 import random
 import time
 import sys
@@ -347,19 +348,20 @@ class World:
 
     ############################################################################################################
     def plot_species_summary(self):
-        # Take the output from this function and use it to create three subplots for each animal's drive values
+        '''
+            create a window
+            for each type fo info we care about
+            create a plot and put it in the window
+
+        '''
+            # Take the output from this function and use it to create three subplots for each animal's drive values
         # of the drive values that are only displayed upon clicking the animal's image on the main GUI display
 
-        #self.species_summary_history_list
+        df_dict = pd.DataFrame(self.species_summary_history_list)
 
-        print(self.species_summary_history_list)
+        self.zebra_drive_values = pd.DataFrame(df_dict['Zebra'][0]['Drive Values'])
+        self.lion_drive_values = pd.DataFrame(df_dict['Lion'][0]['Drive Values'])
 
-    '''
-        create a window
-        for each type fo info we care about
-        create a plot and put it in the window
-
-    '''
 
 
     ############################################################################################################

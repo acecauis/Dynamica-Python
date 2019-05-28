@@ -1,6 +1,7 @@
 import tkinter as tk
 from src.display import species_info_window
-
+from src.world import World
+import matplotlib as plt
 
 class SummaryFrame(tk.Frame):
     ############################################################################################################
@@ -110,6 +111,7 @@ class SummaryFrame(tk.Frame):
         self.lion_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
         self.lion_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
 
+
     ############################################################################################################
     def update_summary_display(self):
         self.summary_main_title.destroy()
@@ -170,7 +172,15 @@ class SummaryFrame(tk.Frame):
 
         self.zebra_text_label = tk.Label(self.summary_canvas, text=zebra_text_string, font="Verdana 10", anchor=tk.W)
         self.zebra_text_label.place(x=70, y=190)
+
+        # ToDo: Add Zebra plot visualization on_double_click
         self.zebra_image_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
+        self.zebra_image_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
+        species_sum = World.plot_species_summary
+        toPlot = species_sum.zebra_drive_values
+        plt.plot(toPlot)
+
+        # ToDo: Add Zebra plot visualization on_double_click
         self.zebra_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
 
         # create the lion display
@@ -194,7 +204,10 @@ class SummaryFrame(tk.Frame):
 
         self.lion_text_label = tk.Label(self.summary_canvas, text=lion_text_string, font="Verdana 10", anchor=tk.W)
         self.lion_text_label.place(x=70, y=230)
+
+        # ToDo: Add Lion plot visualization on_double_click
         self.lion_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
+        # ToDo: Add Lion plot visualization on_double_click
         self.lion_text_label.bind('<Double-Button-1>', self.animal_summary_on_double_click)
 
     ############################################################################################################
